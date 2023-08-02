@@ -129,13 +129,14 @@ HAL_StatusTypeDef DS1307_SQW_RateSet(DS1307* ds1307, DS1307_SQW_FREQ freq);
 HAL_StatusTypeDef DS1307_ReadRegister(DS1307* ds1307, uint8_t reg, uint8_t* data);
 HAL_StatusTypeDef DS1307_ReadRegisters(DS1307* ds1307, uint8_t reg, uint8_t* data, uint8_t len);
 HAL_StatusTypeDef DS1307_WriteRegister(DS1307* ds1307, uint8_t reg, uint8_t data);
+HAL_StatusTypeDef DS1307_WriteRegisters(DS1307* ds1307, uint8_t reg, uint8_t data*, uint8_t len);
 
 /*
  * Private Functions
  */
 
 static uint8_t _bcd_to_bin(uint8_t bcd);
-static uint8_t _bin_to_bcd(uint8_t bcd);
+static uint8_t _bin_to_bcd(uint8_t decimal);
 static uint8_t _set_24h_mode(DS1307* ds1307);
 static HAL_StatusTypeDef _read_control_register(DS1307* ds1307, uint8_t* data);
 

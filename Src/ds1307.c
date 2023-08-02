@@ -117,6 +117,12 @@ HAL_StatusTypeDef DS1307_WriteRegister(DS1307* ds1307, uint8_t reg, uint8_t data
 
 }
 
+HAL_StatusTypeDef DS1307_WriteRegisters(DS1307* ds1307, uint8_t reg, uint8_t* data, uint8_t len) {
+
+	return HAL_I2C_Mem_Write( ds1307->i2cHandle, DS1307_I2C_ADDR, reg, I2C_MEMADD_SIZE_8BIT, data, len, HAL_MAX_DELAY );
+
+}
+
 /*
  * Converts 8-bit binary-coded decimal number representation to binary
  */
@@ -124,8 +130,9 @@ HAL_StatusTypeDef DS1307_WriteRegister(DS1307* ds1307, uint8_t reg, uint8_t data
 static uint8_t _bcd_to_bin(uint8_t bcd) {
 
 	uint8_t tens = (bcd >> 4);
+	uint8_t ones = bcd & 0xF;
 
-	return 0;
+	return tens * 10 + ones;
 
 }
 
@@ -133,11 +140,12 @@ static uint8_t _bcd_to_bin(uint8_t bcd) {
  * Converts decimal to 8-bit binary coded decimal number
  */
 
-static uint8_t _bin_to_bcd(uint8_t bcd) {
+static uint8_t _bin_to_bcd(uint8_t decimal) {
 
-	uint8_t tens = (bcd >> 4);
+	uint8_t tens = decimal / 10;
+	uint8_t ones = decimal % 10;
 
-	return 0;
+	return (tens << 4) | ones;
 
 }
 
