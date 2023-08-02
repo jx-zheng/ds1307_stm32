@@ -6,10 +6,19 @@
 #include "ds1307.h"
 
 /*
+ * Static function prototypes
+ */
+
+static uint8_t _bcd_to_bin(uint8_t bcd);
+static uint8_t _bin_to_bcd(uint8_t decimal);
+static uint8_t _set_24h_mode(const DS1307* ds1307);
+static HAL_StatusTypeDef _read_control_register(const DS1307* ds1307, uint8_t* data);
+
+/*
  * Initialization
  */
 
-uint8_t DS1307_Initialize(DS1307* ds1307, const I2C_HandleTypeDef* handle) {
+uint8_t DS1307_Initialize(DS1307* ds1307, I2C_HandleTypeDef* handle) {
 
     ds1307->year      = 0;
     ds1307->month     = 0;
@@ -91,7 +100,7 @@ HAL_StatusTypeDef DS1307_StartClock(const DS1307* ds1307) {
         return HAL_ERROR;
     }
 
-    uint8_t clock_halt_mask = ~(0b10000000);
+    uint8_t clock_halt_mask = (uint8_t) ~(0b10000000);
     return DS1307_WriteRegister( ds1307, DS1307_REG_SECONDS, seconds_reg & clock_halt_mask );
 }
 
@@ -227,18 +236,18 @@ static uint8_t _set_24h_mode(const DS1307* ds1307) {
      */
     uint8_t am_pm_mask = 0b00100000;
     uint8_t twelve_hrs_mask = 0b00011111;
-    uint8_t hour = _bcd_to_decimal(hour_reg & twelve_hrs_mask);
+    uint8_t hours = _bcd_to_bin(hour_reg & twelve_hrs_mask);
 
     /* Convert hour from 12-hour format to 24-hour format */
-    if ((hour_reg & am_pm_mask) != 0 && hour < 12) { // PM
-        hour += 12;
-    } else if ((hour_reg & am_pm_mask) == 0 && hour == 12) { // Special case: 12 AM
-        hour = 0;
+    if((hour_reg & am_pm_mask) != 0 && hours < 12) { // PM
+        hours += 12;
+    } else if ((hour_reg & am_pm_mask) == 0 && hours == 12) { // Special case: 12 AM
+        hours = 0;
     }
 
-    uint8_t bcd_hours = _decimal_to_bcd(total_hours); /* Will have 12/24h mode bit low for 24h mode */
+    uint8_t bcd_hours = _bin_to_bcd(hours); /* Will have 12/24h mode bit low for 24h mode */
 
-    return DS1307_WriteRegister(ds1307, DS1307_REG_HOURS, &bcd_hours);
+    return DS1307_WriteRegister(ds1307, DS1307_REG_HOURS, bcd_hours);
 }
 
 /*

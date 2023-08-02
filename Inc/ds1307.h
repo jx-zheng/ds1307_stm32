@@ -82,7 +82,7 @@ typedef struct {
  * The RTC is set to 24-hour mode on success.
  */
 
-uint8_t DS1307_Initialize(DS1307* ds1307, const I2C_HandleTypeDef* handle);
+uint8_t DS1307_Initialize(DS1307* ds1307, I2C_HandleTypeDef* handle);
 
 /*
  * Read Clock
