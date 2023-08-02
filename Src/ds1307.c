@@ -167,8 +167,7 @@ static uint8_t _set_24h_mode(DS1307* ds1307) {
 	if( DS1307_ReadRegister(ds1307, DS1307_REG_HOURS, &hour_reg) != HAL_OK ) {
 		return HAL_ERROR;
 	}
-	uint8_t mask = 0b01000000;
-	if( !(mask & hour_reg) ) {
+	if( !(0b01000000 & hour_reg) ) {
 		return HAL_OK;
 	}
 
@@ -176,9 +175,20 @@ static uint8_t _set_24h_mode(DS1307* ds1307) {
 	 * We need to change to 24h mode
 	 * Changing mode bit requires us to re-enter hours value
 	 */
-	// TODO
+	uint8_t am_pm_mask = 0b00100000;
+	uint8_t twelve_hrs_mask = 0b00011111;
+    uint8_t hour = _bcd_to_decimal(hour_reg & twelve_hrs_mask);
 
+    /* Convert hour from 12-hour format to 24-hour format */
+    if ((hour_reg & am_pm_mask) != 0 && hour < 12) { // PM
+        hour += 12;
+    } else if ((hour_reg & am_pm_mask) == 0 && hour == 12) { // Special case: 12 AM
+        hour = 0;
+    }
 
+	uint8_t bcd_hours = _decimal_to_bcd(total_hours); /* Will have 12/24h mode bit low for 24h mode */
+
+	return DS1307_WriteRegister(ds1307, DS1307_REG_HOURS, &bcd_hours);
 }
 
 /*
