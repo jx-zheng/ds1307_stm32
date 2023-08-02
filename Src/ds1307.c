@@ -14,6 +14,7 @@ uint8_t DS1307_Initialize(DS1307* ds1307, I2C_HandleTypeDef* handle) {
 	ds1307->year 		= 0;
 	ds1307->month 		= 0;
 	ds1307->date 		= 0;
+	ds1307->day         = 0;
 	ds1307->hours 		= 0;
 	ds1307->minutes 	= 0;
 	ds1307->seconds 	= 0;
@@ -26,11 +27,11 @@ uint8_t DS1307_Initialize(DS1307* ds1307, I2C_HandleTypeDef* handle) {
 
 	uint8_t day;
 	if( DS1307_ReadRegister(ds1307, DS1307_REG_DAY, &day) != HAL_OK ) {
-		return 1;
+		return HAL_ERROR;
 	} else if( day >= 1 && day <= 7 ) {
 		return _set_24h_mode(ds1307);
 	} else {
-		return 1;
+		return HAL_ERROR;
 	}
 
 }
@@ -49,6 +50,49 @@ HAL_StatusTypeDef DS1307_ReadClock(DS1307* ds1307) {
 
 HAL_StatusTypeDef DS1307_WriteClock(DS1307* ds1307) {
 
+}
+
+/*
+ * Enable Square Wave Output
+ */
+
+HAL_StatusTypeDef DS1307_SQW_Enable(DS1307* ds1307) {
+	uint8_t control_reg_data;
+
+	if( _read_control_register(ds1307, &control_reg_data) != HAL_OK ) {
+		return HAL_ERROR;
+	}
+
+	uint8_t sqw_enable = 0b00010000 | control_reg_data; /* Disable the 4th bit */
+	return DS1307_WriteRegister( ds1307, DS1307_REG_CONTROL, sqw_enable );
+}
+
+/*
+ * Disable Square Wave Output
+ */
+
+HAL_StatusTypeDef DS1307_SQW_Disable(DS1307* ds1307) {
+	uint8_t control_reg_data;
+	if( _read_control_register(ds1307, &control_reg_data) != HAL_OK) {
+		return HAL_ERROR;
+	}
+
+	uint8_t sqw_disable = 0b11101111 & control_reg_data;
+	return DS1307_WriteRegister( ds1307, DS1307_REG_CONTROL, sqw_disable );
+}
+
+/*
+ * Set frequency of Square Wave Output
+ */
+
+HAL_StatusTypeDef DS1307_SQW_RateSet(DS1307* ds1307, DS1307_SQW_FREQ freq) {
+	uint8_t control_reg_data;
+	if( _read_control_register(ds1307, &control_reg_data) != HAL_OK) {
+		return HAL_ERROR;
+	}
+
+	uint8_t freq_reg_value = freq | (control_reg_data & 0b11111100);
+	return DS1307_WriteRegister( ds1307, DS1307_REG_CONTROL, freq_reg_value );
 }
 
 /*
@@ -74,7 +118,7 @@ HAL_StatusTypeDef DS1307_WriteRegister(DS1307* ds1307, uint8_t reg, uint8_t data
 }
 
 /*
- * Helper function to convert 8-bit binary-coded decimal number representation to binary
+ * Converts 8-bit binary-coded decimal number representation to binary
  */
 
 static uint8_t _bcd_to_bin(uint8_t bcd) {
@@ -86,7 +130,7 @@ static uint8_t _bcd_to_bin(uint8_t bcd) {
 }
 
 /*
- * Helper function to convert decimal to 8-bit binary coded decimal number
+ * Converts decimal to 8-bit binary coded decimal number
  */
 
 static uint8_t _bin_to_bcd(uint8_t bcd) {
@@ -98,7 +142,7 @@ static uint8_t _bin_to_bcd(uint8_t bcd) {
 }
 
 /*
- * Helper function to set DS1307 to 24-hour mode
+ * Sets DS1307 to 24-hour mode
  *
  * Returns 0 on success, 1 on failure
  */
@@ -113,22 +157,26 @@ static uint8_t _set_24h_mode(DS1307* ds1307) {
 
 	uint8_t hour_reg;
 	if( DS1307_ReadRegister(ds1307, DS1307_REG_HOURS, &hour_reg) != HAL_OK ) {
-		return 1;
+		return HAL_ERROR;
 	}
 	uint8_t mask = 0b01000000;
 	if( !(mask & hour_reg) ) {
-		/* We are already in 24 hour mode */
-		return 0;
+		return HAL_OK;
 	}
 
 	/*
 	 * We need to change to 24h mode
 	 * Changing mode bit requires us to re-enter hours value
 	 */
-
-	if() {
-		return 0;
-	}
+	// TODO
 
 
+}
+
+/*
+ * Reads the value of the control register and places it in data argument
+ */
+
+static HAL_StatusTypeDef _read_control_register(DS1307* ds1307, uint8_t* data) {
+	return DS1307_ReadRegister(ds1307, DS1307_REG_CONTROL, data);
 }

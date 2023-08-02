@@ -37,10 +37,12 @@
 /*
  * Square Wave Output Frequency
  */
-#define DS1307_SQW_1HZ		0
-#define DS1307_SQW_4KHZ		1
-#define DS1307_SQW_8KHZ		2
-#define DS1307_SQW_32KHZ	3
+typedef enum {
+	ONE_HZ = 0x00,
+	FOUR_KHZ = 0x01,
+	EIGHT_KHZ = 0x10,
+	THIRTYTWO_KHZ = 0x11
+} DS1307_SQW_FREQ;
 
 /*
  * RTC Handle
@@ -118,7 +120,7 @@ HAL_StatusTypeDef DS1307_StopClock(DS1307* ds1307);
 
 HAL_StatusTypeDef DS1307_SQW_Enable(DS1307* ds1307);
 HAL_StatusTypeDef DS1307_SQW_Disable(DS1307* ds1307);
-HAL_StatusTypeDef DS1307_SQW_RateSet(DS1307* ds1307, uint8_t freq);
+HAL_StatusTypeDef DS1307_SQW_RateSet(DS1307* ds1307, DS1307_SQW_FREQ freq);
 
 /*
  * Low-Level Interface
@@ -129,12 +131,13 @@ HAL_StatusTypeDef DS1307_ReadRegisters(DS1307* ds1307, uint8_t reg, uint8_t* dat
 HAL_StatusTypeDef DS1307_WriteRegister(DS1307* ds1307, uint8_t reg, uint8_t data);
 
 /*
- * Private/Helper Functions
+ * Private Functions
  */
 
 static uint8_t _bcd_to_bin(uint8_t bcd);
 static uint8_t _bin_to_bcd(uint8_t bcd);
 static uint8_t _set_24h_mode(DS1307* ds1307);
+static HAL_StatusTypeDef _read_control_register(DS1307* ds1307, uint8_t* data);
 
 #endif /* INC_DS1307_H_ */
 
