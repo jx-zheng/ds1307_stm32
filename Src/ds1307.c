@@ -9,7 +9,7 @@
  * Initialization
  */
 
-uint8_t DS1307_Initialize(DS1307* ds1307, I2C_HandleTypeDef* handle) {
+uint8_t DS1307_Initialize(DS1307* ds1307, const I2C_HandleTypeDef* handle) {
 
 	ds1307->year 		= 0;
 	ds1307->month 		= 0;
@@ -42,13 +42,76 @@ uint8_t DS1307_Initialize(DS1307* ds1307, I2C_HandleTypeDef* handle) {
 
 HAL_StatusTypeDef DS1307_ReadClock(DS1307* ds1307) {
 
+	uint8_t clock_data[DS1307_CLOCK_REG_LEN];
+	if( DS1307_ReadRegisters(ds1307, DS1307_REG_SECONDS, clock_data, DS1307_CLOCK_REG_LEN) != HAL_OK ) {
+		return HAL_ERROR;
+	}
+
+	ds1307->seconds = _bcd_to_bin(clock_data[0] & 0b01111111); /* Mask CH bit */
+	ds1307->minutes = _bcd_to_bin(clock_data[1]);
+	ds1307->hours   = _bcd_to_bin(clock_data[2]); /* No masks needed; we assume 24h mode initialized */
+	ds1307->day     = clock_data[3];
+	ds1307->date    = _bcd_to_bin(clock_data[4]);
+	ds1307->month   = _bcd_to_bin(clock_data[5]);
+	ds1307->year    = _bcd_to_bin(clock_data[6]);
+
+	return HAL_OK;
+
 }
 
 /*
  * Set Clock
  */
 
-HAL_StatusTypeDef DS1307_WriteClock(DS1307* ds1307) {
+HAL_StatusTypeDef DS1307_WriteClock(const DS1307* ds1307) {
+
+	uint8_t clock_data[DS1307_CLOCK_REG_LEN];
+	uint8_t seconds_reg; /* Get seconds register so that we can preserve state of CH bit */
+	if( DS1307_ReadRegister(ds1307, DS1307_REG_SECONDS, &seconds_reg) != HAL_OK ) {
+		return HAL_ERROR;
+	}
+
+	clock_data[0] = (seconds_reg & 0b10000000) | _bin_to_bcd(ds1307->seconds);
+	clock_data[1] = _bin_to_bcd(ds1307->minutes);
+	clock_data[2] = _bin_to_bcd(ds1307->hours);
+	clock_data[3] = ds1307->day;
+	clock_data[4] = _bin_to_bcd(ds1307->date);
+	clock_data[5] = _bin_to_bcd(ds1307->month);
+	clock_data[6] = _bin_to_bcd(ds1307->year);
+
+	return DS1307_WriteRegisters(ds1307, DS1307_REG_SECONDS, clock_data, DS1307_CLOCK_REG_LEN);
+
+}
+
+/*
+ * Clear the clock halt bit to run the clock
+ */
+
+HAL_StatusTypeDef DS1307_StartClock(const DS1307* ds1307) {
+
+	uint8_t seconds_reg;
+	if( DS1307_ReadRegister(ds1307, DS1307_REG_SECONDS, &seconds_reg) != HAL_OK ) {
+		return HAL_ERROR;
+	}
+
+	uint8_t clock_halt_mask = ~(0b10000000);
+	return DS1307_WriteRegister( ds1307, DS1307_REG_SECONDS, seconds_reg & clock_halt_mask );
+
+}
+
+/*
+ * Set the clock halt bit to pause the clock
+ */
+
+HAL_StatusTypeDef DS1307_StopClock(const DS1307* ds1307) {
+
+	uint8_t seconds_reg;
+	if( DS1307_ReadRegister(ds1307, DS1307_REG_SECONDS, &seconds_reg) != HAL_OK ) {
+		return HAL_ERROR;
+	}
+
+	uint8_t clock_halt_mask = 0b10000000;
+	return DS1307_WriteRegister( ds1307, DS1307_REG_SECONDS, seconds_reg | clock_halt_mask );
 
 }
 
@@ -56,7 +119,7 @@ HAL_StatusTypeDef DS1307_WriteClock(DS1307* ds1307) {
  * Enable Square Wave Output
  */
 
-HAL_StatusTypeDef DS1307_SQW_Enable(DS1307* ds1307) {
+HAL_StatusTypeDef DS1307_SQW_Enable(const DS1307* ds1307) {
 	uint8_t control_reg_data;
 
 	if( _read_control_register(ds1307, &control_reg_data) != HAL_OK ) {
@@ -71,7 +134,7 @@ HAL_StatusTypeDef DS1307_SQW_Enable(DS1307* ds1307) {
  * Disable Square Wave Output
  */
 
-HAL_StatusTypeDef DS1307_SQW_Disable(DS1307* ds1307) {
+HAL_StatusTypeDef DS1307_SQW_Disable(const DS1307* ds1307) {
 	uint8_t control_reg_data;
 	if( _read_control_register(ds1307, &control_reg_data) != HAL_OK) {
 		return HAL_ERROR;
@@ -85,7 +148,7 @@ HAL_StatusTypeDef DS1307_SQW_Disable(DS1307* ds1307) {
  * Set frequency of Square Wave Output
  */
 
-HAL_StatusTypeDef DS1307_SQW_RateSet(DS1307* ds1307, DS1307_SQW_FREQ freq) {
+HAL_StatusTypeDef DS1307_SQW_RateSet(const DS1307* ds1307, DS1307_SQW_FREQ freq) {
 	uint8_t control_reg_data;
 	if( _read_control_register(ds1307, &control_reg_data) != HAL_OK) {
 		return HAL_ERROR;
@@ -99,25 +162,25 @@ HAL_StatusTypeDef DS1307_SQW_RateSet(DS1307* ds1307, DS1307_SQW_FREQ freq) {
  * Low-Level Interface
  */
 
-HAL_StatusTypeDef DS1307_ReadRegister(DS1307* ds1307, uint8_t reg, uint8_t* data) {
+HAL_StatusTypeDef DS1307_ReadRegister(const DS1307* ds1307, uint8_t reg, uint8_t* data) {
 
 	return HAL_I2C_Mem_Read( ds1307->i2cHandle, DS1307_I2C_ADDR, reg, I2C_MEMADD_SIZE_8BIT, data, 1, HAL_MAX_DELAY );
 
 }
 
-HAL_StatusTypeDef DS1307_ReadRegisters(DS1307* ds1307, uint8_t reg, uint8_t* data, uint8_t len) {
+HAL_StatusTypeDef DS1307_ReadRegisters(const DS1307* ds1307, uint8_t reg, uint8_t* data, uint8_t len) {
 
 	return HAL_I2C_Mem_Read( ds1307->i2cHandle, DS1307_I2C_ADDR, reg, I2C_MEMADD_SIZE_8BIT, data, len, HAL_MAX_DELAY);
 
 }
 
-HAL_StatusTypeDef DS1307_WriteRegister(DS1307* ds1307, uint8_t reg, uint8_t data) {
+HAL_StatusTypeDef DS1307_WriteRegister(const DS1307* ds1307, uint8_t reg, uint8_t data) {
 
 	return HAL_I2C_Mem_Write( ds1307->i2cHandle, DS1307_I2C_ADDR, reg, I2C_MEMADD_SIZE_8BIT, &data, 1, HAL_MAX_DELAY );
 
 }
 
-HAL_StatusTypeDef DS1307_WriteRegisters(DS1307* ds1307, uint8_t reg, uint8_t* data, uint8_t len) {
+HAL_StatusTypeDef DS1307_WriteRegisters(const DS1307* ds1307, uint8_t reg, uint8_t* data, uint8_t len) {
 
 	return HAL_I2C_Mem_Write( ds1307->i2cHandle, DS1307_I2C_ADDR, reg, I2C_MEMADD_SIZE_8BIT, data, len, HAL_MAX_DELAY );
 
@@ -155,14 +218,13 @@ static uint8_t _bin_to_bcd(uint8_t decimal) {
  * Returns 0 on success, 1 on failure
  */
 
-static uint8_t _set_24h_mode(DS1307* ds1307) {
+static uint8_t _set_24h_mode(const DS1307* ds1307) {
 
 	/*
 	 * Check if we are in 24 hour mode
 	 * 12/24-hour mode bit is 6th bit in DS1307_REG_HOURS
 	 * When high, 12-hour mode selected
 	 */
-
 	uint8_t hour_reg;
 	if( DS1307_ReadRegister(ds1307, DS1307_REG_HOURS, &hour_reg) != HAL_OK ) {
 		return HAL_ERROR;
@@ -195,6 +257,6 @@ static uint8_t _set_24h_mode(DS1307* ds1307) {
  * Reads the value of the control register and places it in data argument
  */
 
-static HAL_StatusTypeDef _read_control_register(DS1307* ds1307, uint8_t* data) {
+static HAL_StatusTypeDef _read_control_register(const DS1307* ds1307, uint8_t* data) {
 	return DS1307_ReadRegister(ds1307, DS1307_REG_CONTROL, data);
 }

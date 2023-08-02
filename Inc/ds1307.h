@@ -18,14 +18,15 @@
  * Register Addresses
  */
 
-#define DS1307_REG_SECONDS	0x00
-#define DS1307_REG_MINUTES	0x01
-#define DS1307_REG_HOURS	0x02
-#define DS1307_REG_DAY		0x03
-#define DS1307_REG_DATE		0x04
-#define DS1307_REG_MONTH	0x05
-#define DS1307_REG_YEAR		0x06
-#define DS1307_REG_CONTROL	0x07
+#define DS1307_REG_SECONDS	 0x00
+#define DS1307_REG_MINUTES	 0x01
+#define DS1307_REG_HOURS	 0x02
+#define DS1307_REG_DAY		 0x03
+#define DS1307_REG_DATE		 0x04
+#define DS1307_REG_MONTH	 0x05
+#define DS1307_REG_YEAR		 0x06
+#define DS1307_REG_CONTROL	 0x07
+#define DS1307_CLOCK_REG_LEN 0x07
 
 /*
  * RAM Addresses
@@ -81,7 +82,7 @@ typedef struct {
  * The RTC is set to 24-hour mode on success.
  */
 
-uint8_t DS1307_Initialize(DS1307* ds1307, I2C_HandleTypeDef* handle);
+uint8_t DS1307_Initialize(DS1307* ds1307, const I2C_HandleTypeDef* handle);
 
 /*
  * Read Clock
@@ -93,70 +94,30 @@ HAL_StatusTypeDef DS1307_ReadClock(DS1307* ds1307);
  * Set Clock
  */
 
-HAL_StatusTypeDef DS1307_WriteClock(DS1307* ds1307);
-
-/*
- * Read RAM
- */
-
-HAL_StatusTypeDef DS1307_ReadRam(DS1307* ds1307, uint8_t addr, const char* buffer, uint8_t len);
-
-/*
- * Write RAM
- */
-
-HAL_StatusTypeDef DS1307_WriteRam(DS1307* ds1307, uint8_t addr, const char* buffer, uint8_t len);
+HAL_StatusTypeDef DS1307_WriteClock(const DS1307* ds1307);
 
 /*
  * Start/Stop Clock
  */
 
-HAL_StatusTypeDef DS1307_StartClock(DS1307* ds1307);
-HAL_StatusTypeDef DS1307_StopClock(DS1307* ds1307);
+HAL_StatusTypeDef DS1307_StartClock(const DS1307* ds1307);
+HAL_StatusTypeDef DS1307_StopClock(const DS1307* ds1307);
 
 /*
  * Square Wave Control
  */
 
-HAL_StatusTypeDef DS1307_SQW_Enable(DS1307* ds1307);
-HAL_StatusTypeDef DS1307_SQW_Disable(DS1307* ds1307);
-HAL_StatusTypeDef DS1307_SQW_RateSet(DS1307* ds1307, DS1307_SQW_FREQ freq);
+HAL_StatusTypeDef DS1307_SQW_Enable(const DS1307* ds1307);
+HAL_StatusTypeDef DS1307_SQW_Disable(const DS1307* ds1307);
+HAL_StatusTypeDef DS1307_SQW_RateSet(const DS1307* ds1307, DS1307_SQW_FREQ freq);
 
 /*
  * Low-Level Interface
  */
 
-HAL_StatusTypeDef DS1307_ReadRegister(DS1307* ds1307, uint8_t reg, uint8_t* data);
-HAL_StatusTypeDef DS1307_ReadRegisters(DS1307* ds1307, uint8_t reg, uint8_t* data, uint8_t len);
-HAL_StatusTypeDef DS1307_WriteRegister(DS1307* ds1307, uint8_t reg, uint8_t data);
-HAL_StatusTypeDef DS1307_WriteRegisters(DS1307* ds1307, uint8_t reg, uint8_t data*, uint8_t len);
-
-/*
- * Private Functions
- */
-
-static uint8_t _bcd_to_bin(uint8_t bcd);
-static uint8_t _bin_to_bcd(uint8_t decimal);
-static uint8_t _set_24h_mode(DS1307* ds1307);
-static HAL_StatusTypeDef _read_control_register(DS1307* ds1307, uint8_t* data);
+HAL_StatusTypeDef DS1307_ReadRegister(const DS1307* ds1307, uint8_t reg, uint8_t* data);
+HAL_StatusTypeDef DS1307_ReadRegisters(const DS1307* ds1307, uint8_t reg, uint8_t* data, uint8_t len);
+HAL_StatusTypeDef DS1307_WriteRegister(const DS1307* ds1307, uint8_t reg, uint8_t data);
+HAL_StatusTypeDef DS1307_WriteRegisters(const DS1307* ds1307, uint8_t reg, uint8_t* data, uint8_t len);
 
 #endif /* INC_DS1307_H_ */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
