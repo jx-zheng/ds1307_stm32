@@ -18,14 +18,14 @@
  * Register Addresses
  */
 
-#define DS1307_REG_SECONDS	 0x00
-#define DS1307_REG_MINUTES	 0x01
-#define DS1307_REG_HOURS	 0x02
-#define DS1307_REG_DAY		 0x03
-#define DS1307_REG_DATE		 0x04
-#define DS1307_REG_MONTH	 0x05
-#define DS1307_REG_YEAR		 0x06
-#define DS1307_REG_CONTROL	 0x07
+#define DS1307_REG_SECONDS   0x00
+#define DS1307_REG_MINUTES   0x01
+#define DS1307_REG_HOURS     0x02
+#define DS1307_REG_DAY       0x03
+#define DS1307_REG_DATE      0x04
+#define DS1307_REG_MONTH     0x05
+#define DS1307_REG_YEAR      0x06
+#define DS1307_REG_CONTROL   0x07
 #define DS1307_CLOCK_REG_LEN 0x07
 
 /*
@@ -39,10 +39,10 @@
  * Square Wave Output Frequency
  */
 typedef enum {
-	ONE_HZ = 0x00,
-	FOUR_KHZ = 0x01,
-	EIGHT_KHZ = 0x10,
-	THIRTYTWO_KHZ = 0x11
+    ONE_HZ = 0x00,
+    FOUR_KHZ = 0x01,
+    EIGHT_KHZ = 0x10,
+    THIRTYTWO_KHZ = 0x11
 } DS1307_SQW_FREQ;
 
 /*
@@ -51,29 +51,29 @@ typedef enum {
 
 typedef struct {
 
-	/* I2C handle */
-	I2C_HandleTypeDef *i2cHandle;
+    /* I2C handle */
+    I2C_HandleTypeDef *i2cHandle;
 
-	/* Year (0-99) */
-	uint8_t year;
+    /* Year (0-99) */
+    uint8_t year;
 
-	/* Month (1-12) */
-	uint8_t month;
+    /* Month (1-12) */
+    uint8_t month;
 
-	/* Date (1-31) */
-	uint8_t date;
+    /* Date (1-31) */
+    uint8_t date;
 
-	/* Day (1-7) */
-	uint8_t day;
+    /* Day (1-7) */
+    uint8_t day;
 
-	/* Hours (0-23) */
-	uint8_t hours;
+    /* Hours (0-23) */
+    uint8_t hours;
 
-	/* Minutes (0-59) */
-	uint8_t minutes;
+    /* Minutes (0-59) */
+    uint8_t minutes;
 
-	/* Seconds (0-59) */
-	uint8_t seconds;
+    /* Seconds (0-59) */
+    uint8_t seconds;
 
 } DS1307;
 
