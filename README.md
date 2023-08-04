@@ -21,5 +21,6 @@ This driver works with any STM32F4 (Arm Cortex M4) out-of-the-box, and was teste
 Add Inc/ds1307.h and Src/ds1307.c to your STM32 project in the corresponding folders. main.c provides a usage example of the driver on an STM32F4xx MCU,
 where UART serial output is set up to initialize the driver, set a time and date, and write the time and date to the serial port every 5 seconds. Note that main.c will not build on its own; it depends on MCU-specific code generated via STM32CubeMX.
 
-![DS1307 usage and serial output demo](https://github.com/jx-zheng/ds1307_stm32/assets/43159579/83fb33cc-1b03-4c7b-875e-07507ed8da30)
+![DS1307 usage and serial output demo](https://github.com/jx-zheng/ds1307_stm32/assets/43159579/6e5a584e-f65f-49d1-b551-98f1e83c5f71)
+
 
