@@ -14,7 +14,7 @@ The driver implements allows for easy use of all essential DS1307 functions, inc
 
 ## Compatibility
 
-This driver works with any STM32F4 (Arm Cortex M4) out-of-the-box, and was tested on an STM32 Black Pill board (STM32F401CD6). Making this driver compatible with other STM32Fx-series MCUs can be achieved by simply changing the included HAL support header in Inc/ds1307.h.
+This driver works with any STM32F4 (Arm Cortex M4) out-of-the-box, and was tested on an STM32 Black Pill board (STM32F401CDU6). Making this driver compatible with other STM32Fx-series MCUs can be achieved by simply changing the included HAL support header in Inc/ds1307.h.
 
 ## Files and Usage
 
